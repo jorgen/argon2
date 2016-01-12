@@ -1,0 +1,5 @@
+stack ghci --ghc-options -L.stack-work/install/x86_64-osx/lts-3.18/7.10.2/lib/x86_64-osx-ghc-7.10.2/argon2-1.0.0-AjPdlcP1PHdHJrvGAfWaVs --ghc-options -lHSargon2-1.0.0-AjPdlcP1PHdHJrvGAfWaVs-ghc7.10.2 --ghc-options "-package base64-bytestring"
+import Data.ByteString.Base64
+hashEncoded defaultHashOptions (ClearTextPassword  "SomePass") (Salt "someSalt")
+verifyEncoded defaultHashOptions (EncodedPassword "$argon2i$m=4096,t=3,p=1$c29tZVNhbHQ$VI9VSGplEf3Bo/5n0ORkDb8HjmF9Sr1mDekMcw34OghX8YNWU8VdgRo7fstJoG/fcCBcQwfPwki0/43oQvX+Qw") (ClearTextPassword "SomePass")
+encode $ hash defaultHashOptions (ClearTextPassword "SomePass") (Salt "someSalt")
