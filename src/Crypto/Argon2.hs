@@ -20,7 +20,8 @@ data HashOptions =
   HashOptions {hashIterations :: !Word32
               ,hashMemory :: !Word32
               ,hashParallelism :: !Word32
-              ,hashVariant :: !Argon2Variant}
+              ,hashVariant :: !Argon2Variant
+              ,hashLength :: Int}
 
 newtype EncodedPassword = EncodedPassword T.Text
   deriving(Show, Eq)
@@ -34,7 +35,8 @@ defaultHashOptions =
   HashOptions {hashIterations = 3
               ,hashMemory = 2 ^ 12
               ,hashParallelism = 1
-              ,hashVariant = Argon2i}
+              ,hashVariant = Argon2i
+              ,hashLength = 64}
 
 hashEncoded :: HashOptions       -- ^ Options pertaining to how expensive the hash is to calculate
             -> ClearTextPassword -- ^ The password to hash
@@ -111,7 +113,7 @@ hashEncoded' :: HashOptions
              -> Argon2Encode
              -> IO T.Text
 hashEncoded' HashOptions{..} password salt argon2i argon2d =
-  do out <- mallocBytes 512
+  do out <- mallocBytes outLen
      res <-
        BS.useAsCString password $
        \password' ->
@@ -124,14 +126,15 @@ hashEncoded' HashOptions{..} password salt argon2i argon2d =
                   passwordLen
                   salt'
                   saltLen
-                  64
+                  (fromIntegral hashLength)
                   out
-                  512
+                  (fromIntegral outLen)
      fmap T.decodeUtf8 $ handleSuccessCode res out saltLen passwordLen hashIterations hashMemory hashParallelism
      where
        argon2 = variant argon2i argon2d hashVariant
        saltLen = fromIntegral (BS.length salt)
        passwordLen = fromIntegral (BS.length password)
+       outLen = (hashLength + (fromIntegral saltLen) + 256)
 
 hash' :: HashOptions
       -> BS.ByteString
@@ -140,7 +143,7 @@ hash' :: HashOptions
       -> Argon2Raw
       -> IO BS.ByteString
 hash' HashOptions{..} password salt argon2i argon2d =
-  do out <- mallocBytes 512
+  do out <- mallocBytes hashLength
      res <-
        BS.useAsCString password $
        \password' ->
@@ -154,7 +157,7 @@ hash' HashOptions{..} password salt argon2i argon2d =
                   salt'
                   saltLen
                   out
-                  512
+                  (fromIntegral hashLength)
      handleSuccessCode res out saltLen passwordLen hashIterations hashMemory hashParallelism
      where
        argon2 = variant argon2i argon2d hashVariant
