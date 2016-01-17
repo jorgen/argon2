@@ -72,17 +72,16 @@ data Argon2Exception
 instance Exception Argon2Exception
 
 handleSuccessCode :: Int32
-                  -> CString
                   -> Word64
                   -> Word64
                   -> Word32
                   -> Word32
                   -> Word32
-                  -> IO BS.ByteString
-handleSuccessCode res out saltLen passwordLen hashIterations hashMemory hashParallelism =
+                  -> IO ()
+handleSuccessCode res saltLen passwordLen hashIterations hashMemory hashParallelism =
   case res of
     a
-      | a `elem` [FFI.ARGON2_OK] -> BS.packCString out
+      | a `elem` [FFI.ARGON2_OK] -> return ()
       | a `elem` [FFI.ARGON2_SALT_TOO_SHORT,FFI.ARGON2_SALT_TOO_LONG] ->
         throwIO (Argon2SaltLengthOutOfRange saltLen
                                             FFI.ARGON2_MIN_SALT_LENGTH
@@ -129,7 +128,8 @@ hashEncoded' HashOptions{..} password salt argon2i argon2d =
                   (fromIntegral hashLength)
                   out
                   (fromIntegral outLen)
-     fmap T.decodeUtf8 $ handleSuccessCode res out saltLen passwordLen hashIterations hashMemory hashParallelism
+     handleSuccessCode res saltLen passwordLen hashIterations hashMemory hashParallelism
+     fmap T.decodeUtf8 (BS.packCString out)
      where
        argon2 = variant argon2i argon2d hashVariant
        saltLen = fromIntegral (BS.length salt)
@@ -143,7 +143,7 @@ hash' :: HashOptions
       -> Argon2Raw
       -> IO BS.ByteString
 hash' HashOptions{..} password salt argon2i argon2d =
-  do out <- mallocBytes hashLength
+  do out <- mallocBytes $ hashLength
      res <-
        BS.useAsCString password $
        \password' ->
@@ -158,7 +158,8 @@ hash' HashOptions{..} password salt argon2i argon2d =
                   saltLen
                   out
                   (fromIntegral hashLength)
-     handleSuccessCode res out saltLen passwordLen hashIterations hashMemory hashParallelism
+     handleSuccessCode res saltLen passwordLen hashIterations hashMemory hashParallelism
+     BS.packCStringLen (out, hashLength)
      where
        argon2 = variant argon2i argon2d hashVariant
        saltLen = fromIntegral (BS.length salt)
