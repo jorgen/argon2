@@ -41,16 +41,16 @@ defaultHashOptions =
 hashEncoded :: HashOptions       -- ^ Options pertaining to how expensive the hash is to calculate
             -> ClearTextPassword -- ^ The password to hash
             -> Salt              -- ^ The salt to use when hashing
-            -> EncodedPassword   -- ^ The encoded password hash
+            -> IO EncodedPassword   -- ^ The encoded password hash
 hashEncoded options (ClearTextPassword password) (Salt salt) =
-  EncodedPassword $ unsafePerformIO (hashEncoded' options password salt FFI.argon2i_hash_encoded FFI.argon2d_hash_encoded)
+  fmap EncodedPassword (hashEncoded' options password salt FFI.argon2i_hash_encoded FFI.argon2d_hash_encoded)
 
 hash :: HashOptions       -- ^ Options pertaining to how expensive the hash is to calculate
      -> ClearTextPassword -- ^ The password to hash
      -> Salt              -- ^ The salt to use when hashing
-     -> BS.ByteString     -- ^ The un-encoded password hash
+     -> IO BS.ByteString     -- ^ The un-encoded password hash
 hash options (ClearTextPassword password) (Salt salt) =
-  unsafePerformIO (hash' options password salt FFI.argon2i_hash_raw FFI.argon2d_hash_raw)
+  hash' options password salt FFI.argon2i_hash_raw FFI.argon2d_hash_raw
 
 variant :: a -> a -> Argon2Variant -> a
 variant a _ Argon2i = a
@@ -170,9 +170,9 @@ type Argon2Verify  = CString -> CString -> Word64 -> IO Int32
 verifyEncoded :: HashOptions       -- ^ Options pertaining to how expensive the hash is to calculate
               -> EncodedPassword   -- ^ The encodedArgonHash
               -> ClearTextPassword -- ^ The password to hash
-              -> Bool
+              -> IO Bool
 verifyEncoded HashOptions{..} (EncodedPassword encodedArgonHash) (ClearTextPassword password) =
-  unsafePerformIO $ do
+  do
     res <- BS.useAsCString password $
         \password' ->
           BS.useAsCString (T.encodeUtf8 encodedArgonHash) $
