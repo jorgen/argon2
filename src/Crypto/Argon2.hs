@@ -1,7 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Crypto.Argon2 (hashEncoded, hash, verifyEncoded, HashOptions(..), Argon2Variant(..), defaultHashOptions, EncodedPassword, Salt, ClearTextPassword) where
+module Crypto.Argon2 (hashEncoded, hash, verifyEncoded, HashOptions(..), Argon2Variant(..), defaultHashOptions, EncodedPassword(..), Salt(..), ClearTextPassword(..)) where
 
 import Control.Exception
 import Data.Typeable
@@ -32,11 +32,11 @@ newtype ClearTextPassword = ClearTextPassword BS.ByteString
 
 defaultHashOptions :: HashOptions
 defaultHashOptions =
-  HashOptions {hashIterations = 3
-              ,hashMemory = 2 ^ 12
-              ,hashParallelism = 1
+  HashOptions {hashIterations = 2
+              ,hashMemory = 2 ^ 17
+              ,hashParallelism = 2
               ,hashVariant = Argon2i
-              ,hashLength = 64}
+              ,hashLength = 128 }
 
 hashEncoded :: HashOptions       -- ^ Options pertaining to how expensive the hash is to calculate
             -> ClearTextPassword -- ^ The password to hash
