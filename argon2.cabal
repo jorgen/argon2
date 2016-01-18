@@ -8,8 +8,8 @@ synopsis:            Haskell bindings to libargon2 - the reference implementatio
 homepage:            https://github.com/ocharles/argon2.git
 license:             BSD3
 license-file:        LICENSE
-author:              Ollie Charles
-maintainer:          ollie@ocharles.org.uk
+author:              Ollie Charles, Jørgen Lind
+maintainer:          jorgen.lind@gmail.com
 -- copyright:           
 -- category:            
 build-type:          Simple
@@ -22,10 +22,10 @@ library
   build-depends:       base >=4.8 && <4.9, bytestring, text, transformers
   hs-source-dirs:      src
   default-language:    Haskell2010
-  c-sources: phc-winner-argon2/src/argon2.c
-             phc-winner-argon2/src/core.c
-             phc-winner-argon2/src/blake2/blake2b.c
-             phc-winner-argon2/src/thread.c
-             phc-winner-argon2/src/ref.c
-             phc-winner-argon2/src/encoding.c
-  include-dirs: phc-winner-argon2/src
+  c-sources: src/3rdparty/phc-winner-argon2/src/argon2.c
+             src/3rdparty/phc-winner-argon2/src/core.c
+             src/3rdparty/phc-winner-argon2/src/blake2/blake2b.c
+             src/3rdparty/phc-winner-argon2/src/thread.c
+             src/3rdparty/phc-winner-argon2/src/ref.c
+             src/3rdparty/phc-winner-argon2/src/encoding.c
+  include-dirs: src/3rdparty/phc-winner-argon2/src
